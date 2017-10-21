@@ -9,27 +9,20 @@ import matplotlib.pyplot as plt
 import mayavi.mlab as mlab
 from PriceRefer.GasProperty import GasProperty as GP
 import os
-os.environ['QT_API']='pyside'
+os.environ['QT_Anp. np.pi']='pyside'
 
-ParamName={'集流器进口半径':0,
-           '集流器出口半径':1,
-           '集流器长度':2,
-           '叶轮出口直径':3,
-           '蜗舌间隙':4,
-           '正方形边长':5,
-           '蜗壳出口段长度':6,
-           '叶道进口宽度':7,
-           '叶轮入口直径':8,
-           '叶道出口宽度':9,
-           'test':10,
-           '叶片入口直径':11,
-           '叶片出口直径':12,
-           '叶片入口宽度':13,
-           '进气箱厚度':14,
-           '进气箱宽度':15,
-           '进气箱上侧高度':16,
-           '进气箱下侧高度':17,
-           'test2':18}
+
+
+PartArea={  1:'集流器',
+            2:'集流器法兰盘',
+            3:'叶轮前盘',
+            4:'叶片',
+            5:'叶轮后盘或中盘',
+            6:'蜗壳侧板',
+            7:'蜗壳外圈',
+            8:'蜗壳与进气箱公用侧板',
+            9:'进气箱侧板',
+            10:'进气箱外圈'}
 
 
 
@@ -43,7 +36,8 @@ class DataSource(object):
         温度：K
         流量：立方米/秒
         转速：转/分钟"""
-
+        self.isSingle=True
+        self.boardThickness=0
         realGas=GP(P_in,T_in,0)
         realRho=realGas.getdensity()
         idealGas=GP(101325,293,0)
@@ -52,21 +46,298 @@ class DataSource(object):
         self.n=n
         self.P_in=101325
         self.T_in=293
-        self.Qn=Qn
+        if self.isSingle:
+            self.Qn=Qn
+        else:
+            self.Qn=Qn/2
         self.rho=idealRho
-        self.ns=5.54*n*np.sqrt(Qn)/self.P**0.75
+        self.ns=5.54*n*np.sqrt(self.Qn)/self.P**0.75
         self.psi=0.9*(1.505009664438608 * np.exp(-0.018463158347320 * self.ns) + 0.415434029011928)
         u2=np.sqrt(self.P/(idealRho/2*self.psi))
         self.D2=u2*60/(np.pi*self.n)
         self.phi=self.ns**2*self.psi**1.5*idealRho**1.5/24869
         self.data = np.loadtxt('data.txt')
+        self.area=[]
         self.getData()
 
     def getData(self):
 
         #集流器进口半径
-        self.R_jlq=self.getParam(3,[2,1,0])
+        k=self.D2/1000
+        self.R_jlq=self.getParam(3,[2,1,0])*k
+        self.L_jlq=self.getParam(4,[2,1,0])*k
+        self.R2_jlq=self.getParam(5,[2,1,0])*k
+        self.e=self.getParam(6,[1,2,0])*k
+        self.b1_shroud=self.getParam(7,[1,2,0])*k
+        self.b2_shroud=self.getParam(8,[1,2,0])*k
+        self.beta_b2=self.getParam(9,[0,1,2])
 
+        self.L_wk=700*k
+
+        self.D0=self.R2_jlq
+        self.D1=self.D0+15*k
+        self.D3=1040*k
+
+        #叶片进口角度
+        b=self.b1_shroud-self.b2_shroud
+        L=(self.D3-self.D0)/2
+        a=(L**2-b**2)/(2*b)
+        x0=self.D0/2+L
+        y0=self.b2_shroud+a+b
+        def func1(x):
+            return np.sqrt((a+b)**2-(x-x0)**2)+y0
+        self.b1=func1(self.D1/2)
+        self.b2=func1(self.D2/2)
+
+        c1=self.Qn/(np.pi*self.D1*self.b1)
+        u1=self.n/60*np.pi*self.D1
+        self.beta_b1=np.arctan(c1/u1)
+        if(self.psi<1.5):
+            self.Z=12
+        else:
+            self.Z=16
+        self.dh=self.D0*0.25
+        if self.isSingle:
+            self.B=self.L_wk+self.b1_shroud+40
+        else:
+            self.B=(self.L_wk+self.b1_shroud)*2+self.boardThickness
+
+        self.t_jqx=np.sqrt(np.pi*(self.D0)**2/8)
+        self.W_jqx=4*self.t_jqx
+        self.H1=(self.D3/2+2*self.e+50*k)
+        self.H2=(self.D3/2+2*self.e)
+        self.alpha_jqx=5
+
+
+    def getArea(self):
+        """计算各部分面积"""
+        #集流器面积
+        R_jlq=self.R_jlq
+        R2_jlq=self.R2_jlq
+        L_jlq=self.L_jlq
+        S1=np.np. np.pi*(R2_jlq+R_jlq)*L_jlq
+        S2=np.np. np.pi*(R_jlq**2-R2_jlq**2)+2*np.np. np.pi*R2_jlq*L_jlq
+        S=(S1+S2)/2
+        if self.isSingle:
+            S=S
+        else:
+            S=2*S
+        self.area.append(S)
+
+        #集流器法兰盘面积
+        if self.D3>1600:
+            S=np.np. np.pi*(200*self.R_jlq+10000)
+        else:
+            S=np.np. np.pi*(120*self.R_jlq+3600)
+        if self.isSingle:
+            S=S
+        else:
+            S=2*S
+        self.area.append(S)
+
+        #叶轮前盘
+        R=self.D3/2
+        L=self.D3/2-self.R2_jlq
+        b=self.b1_shroud-self.b2_shroud
+        a=(L**2-b**2)/(2*b)
+        def func1(x):
+            return R-np.sqrt((a+b)**2-(x+a)**2)
+        num=100
+        delta=b/num
+        area=np.zeros(num)
+        for i in range(num):
+            r=func1(delta*i)
+            area[i]=2*np.np. np.pi*r*delta
+        S=np.sum(area)
+        if self.isSingle:
+            S=S
+        else:
+            S=2*S
+        self.area.append(S)
+
+        #叶片面积
+        cx1,cy1,cr1,c1_1,c2_1=self.getBlade()
+
+        b = self.b1_shroud - self.b2_shroud
+        L = (self.D3 - self.D0) / 2
+        a = (L ** 2 - b ** 2) / (2 * b)
+        x0 = self.D0 / 2 + L
+        y0 = self.b2_shroud + a + b
+        def func2(x):
+            return np.sqrt((a + b) ** 2 - (x - x0) ** 2) + y0
+
+        num = 100
+        delta = (c2_1 - c1_1) / num
+        area=np.zeros(num)
+        for i in range(num):
+            eta = delta * i + c1_1
+            x=cx1+cr1*np.cos(eta)
+            y=cy1+cr1*np.sin(eta)
+            r=np.sqrt(x**2+y**2)
+            h=func2(r)
+            area[i]=eta*cr1*h
+        S=np.sum(area)*self.Z
+        if self.isSingle:
+            S=S
+        else:
+            S=2*S
+        self.area.append(S)
+
+        #叶轮后盘或者中盘
+        S=np.pi*(self.D3/2)**2-np.pi*(self.dh/2)**2
+        self.area.append(S)
+
+        #蜗壳侧板
+        R=self.D3/2
+        L=self.e
+        D=self.L_wk
+        S1=np.pi/4*(R+L/2*1)**2
+        S2 = np.pi / 4 * (R + L / 2 * 3) ** 2
+        S3 = np.pi / 4 * (R + L / 2 * 5) ** 2
+        S4 = np.pi / 4 * (R + L / 2 * 7) ** 2
+        S5=0.5*(4*L+R+4.5*L-(R+0.5*L)*np.cos(np.pi/4))*((R+L/2)*np.cos(np.pi/4))
+        S6=(R+4.5*L-(R+0.5*L)*np.cos(np.pi/4))*(D-(R+0.5*L)*np.cos(np.pi/4))
+        S=S1+S2+S3+S4+S5+S6
+        if self.isSingle:
+            S=S-(self.dh/2)**2*np.pi
+        else:
+            S=0
+        self.area.append(S)
+
+
+        #蜗壳外圈面积
+        perimeter=0.25*np.pi*(R+L/2)+0.5*np.pi*(3*R+7.5*L)+2*D-(R+L/2)*np.cos(np.pi/4)
+        S=self.B*perimeter
+        self.area.append(S)
+
+        #蜗壳与进气箱公用侧板
+        R = self.D3 / 2
+        L = self.e
+        D = self.L_wk
+        S1 = np.pi / 4 * (R + L / 2 * 1) ** 2
+        S2 = np.pi / 4 * (R + L / 2 * 3) ** 2
+        S3 = np.pi / 4 * (R + L / 2 * 5) ** 2
+        S4 = np.pi / 4 * (R + L / 2 * 7) ** 2
+        S5 = 0.5 * (4 * L + R + 4.5 * L - (R + 0.5 * L) * np.cos(np.pi / 4)) * ((R + L / 2) * np.cos(np.pi / 4))
+        S6 = (R + 4.5 * L - (R + 0.5 * L) * np.cos(np.pi / 4)) * (D - (R + 0.5 * L) * np.cos(np.pi / 4))
+        S = S1 + S2 + S3 + S4 + S5 + S6
+
+        H=self.H1
+        H2=self.H2
+        W=self.W_jqx
+        if(W/2<=R+L):
+            S7=0.25*W*(H-(R+L*2)+H+L/2-np.sqrt((R+0.25*L)**2-(W/2-L/2)**2))+\
+                0.25*W*(H-(R+2*L)+H-L/2-np.sqrt((R+1.5*L)**2-(W/2+L/2)**2))
+        elif(W/2>R+L and W/2<=R+3*L):
+            S7=0.25*W*(H-(R+2*L)+H+L/2-np.sqrt((R+2.5*L)**2-(W/2-L/2)**2))+\
+                0.5*W*(H+(R+L/2)*np.cos(np.pi/4)-L/2)-0.25*np.pi*(R+1.5*L)**2-0.25*np.pi*(R+L/2)**2
+        elif(W/2>R+3*L):
+            S7=0.5*W*(H+(R+L/2)*np.cos(np.pi/4)-L/2)-0.25*np.pi*(R+1.5*L)**2-0.25*np.pi*(R+0.5*L)**2+\
+                H*W/2-0.25*np.pi*(R+2.5*L)**2+H2/2*(W/2-(R+3*L)+W/2-np.sqrt((R+3.5*L)**2-(H2-L/2)**2))
+        S+=S7
+        S-=self.R_jlq**2*np.pi
+        if self.isSingle:
+            S=S
+        else:
+            S=2*S
+        self.area.append(S)
+
+        #进气箱侧板面积
+        H1=self.H1
+        H2=self.H2
+        W=self.W_jqx
+        alpha=self.alpha_jqx/180*np.pi
+
+        H=H1+H2
+        S=H*W-H*H*np.tan(alpha)
+        self.area.append(S)
+
+        #进气箱外圈面积
+        perimeter=H/np.cos(alpha)*2+W-2*H*np.tan(alpha)
+        S=perimeter*self.t_jqx
+        self.area.append(S)
+
+
+
+
+
+
+
+
+    def getBlade(self):
+        beta_b1 = self.beta_b1
+        beta_b2 = self.beta_b2
+        alpha = 90.0 - beta_b1
+        R1 = self.D1 / 2
+        R2 = self.D2 / 2
+
+        alpha = alpha / 180.0 * np.np.np.pi
+        beta_b2 = beta_b2 / 180.0 * np.np.np.pi
+        beta = 2 * np.arctan((R2 * np.cos(beta_b2) - R1 * np.sin(alpha)) / (
+        R1 * np.cos(alpha) + R2 * np.sin(beta_b2))) / np.np.np.pi * 180
+        alpha = alpha / np.np.np.pi * 180
+        beta_b2 = beta_b2 / np.np.np.pi * 180
+
+        angle1 = 100
+
+        x1 = R1 * np.cos(angle1 / 180 * np.np.pi)
+        y1 = R1 * np.sin(angle1 / 180 * np.np.pi)
+        k1 = np.tan((angle1 + alpha) / 180 * np.np.pi)
+
+        a = 1.0
+        b = -2.0 * R1 * np.cos(np.np.pi - alpha / 180 * np.np.pi - beta / 2 / 180 * np.np.pi)
+        c = R1 * R1 - R2 * R2
+        l = (-b + np.sqrt(b * b - 4.0 * a * c)) / (2.0 * a)
+
+        angle2 = (R1 * R1 + R2 * R2 - l * l) / (2.0 * R1 * R2)
+        angle2 = np.acos(angle2) * 180 / np.np.pi
+        angle3 = angle1 + angle2
+
+        x2 = R2 * np.cos(angle3 / 180 * np.np.pi)
+        y2 = R2 * np.sin(angle3 / 180 * np.np.pi)
+
+        cx1, cy1, cr1 = self.CalcuCircle(x1, y1, k1, x2, y2)
+        c1_1 = self.CalcuCeta(x1, y1, cx1, cy1, cr1)
+        c2_1 = self.CalcuCeta(x2, y2, cx1, cy1, cr1)
+
+        return cx1,cy1,cr1,c1_1,c2_1
+
+
+
+
+
+
+    def CalcuCircle(self,dx1, dy1, dk1, dx2, dy2):
+        x1 = dx1 
+        y1 = dy1 
+        k1 = -1.0 / dk1 
+        b1 = y1 - k1 * x1 
+
+        x2 = (dx1 + dx2) / 2 
+        y2 = (dy1 + dy2) / 2 
+
+        k2 = -(dx2 - dx1) / (dy2 - dy1)
+        b2 = y2 - k2 * x2
+
+        cx = -(b1 - b2) / (k1 - k2)
+        cy = k1 * cx + b1
+        cr = np.sqrt((cx - x1) * (cx - x1) + (cy - y1) * (cy - y1))
+
+        return cx,cy,cr
+
+    def CalcuCircle(self,x,y,cx,cy,cr):
+        tx = x - cx 
+        ty = y - cy 
+
+        ceta = np.arccos(np.abs(tx) / cr)
+        if (tx < 0 and ty >= 0):
+            ceta =  np.pi - ceta 
+        if (tx <= 0 and ty < 0):
+            ceta =  np.pi + ceta 
+        if (tx > 0 and ty < 0):
+            ceta = 2 *  np.pi - ceta 
+
+        return ceta 
 
 
     def getParam(self,paramIndex,sortIndex):
