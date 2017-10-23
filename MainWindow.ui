@@ -20,14 +20,14 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>80</x>
-      <y>230</y>
+      <x>70</x>
+      <y>260</y>
       <width>641</width>
       <height>341</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>2</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -232,7 +232,7 @@
          <string>加脚板组</string>
         </property>
        </widget>
-       <widget class="QWidget" name="">
+       <widget class="QWidget" name="layoutWidget">
         <property name="geometry">
          <rect>
           <x>30</x>
@@ -446,7 +446,7 @@
      <attribute name="title">
       <string>进风口组</string>
      </attribute>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>70</x>
@@ -539,7 +539,7 @@
      <attribute name="title">
       <string>叶轮组</string>
      </attribute>
-     <widget class="QWidget" name="">
+     <widget class="QWidget" name="layoutWidget">
       <property name="geometry">
        <rect>
         <x>50</x>
@@ -698,8 +698,8 @@
    <widget class="QPushButton" name="pushButton_calculate">
     <property name="geometry">
      <rect>
-      <x>530</x>
-      <y>610</y>
+      <x>540</x>
+      <y>620</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -711,10 +711,10 @@
    <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>80</x>
-      <y>40</y>
-      <width>641</width>
-      <height>161</height>
+      <x>61</x>
+      <y>21</y>
+      <width>661</width>
+      <height>211</height>
      </rect>
     </property>
     <layout class="QGridLayout" name="gridLayout">
@@ -769,43 +769,38 @@
       <widget class="QLineEdit" name="lineEdit_n"/>
      </item>
      <item row="2" column="2">
-      <widget class="QCheckBox" name="isSingle">
+      <widget class="QRadioButton" name="radioButton_single">
        <property name="text">
         <string>单吸</string>
        </property>
       </widget>
      </item>
+     <item row="2" column="3">
+      <widget class="QRadioButton" name="radioButton_double">
+       <property name="text">
+        <string>双吸</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="label_19">
+       <property name="text">
+        <string>材料密度</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="lineEdit"/>
+     </item>
     </layout>
    </widget>
-   <zorder>label</zorder>
-   <zorder>lineEdit_P_in</zorder>
-   <zorder>label_2</zorder>
-   <zorder>lineEdit_T_in</zorder>
-   <zorder>lineEdit_Qn</zorder>
-   <zorder>lineEdit_P</zorder>
-   <zorder>label_3</zorder>
-   <zorder>label_4</zorder>
-   <zorder>label_5</zorder>
-   <zorder>lineEdit_n</zorder>
-   <zorder>isSingle</zorder>
+   <zorder>layoutWidget</zorder>
    <zorder>tabWidget</zorder>
    <zorder>pushButton_calculate</zorder>
-   <zorder>comboBox_board5</zorder>
-   <zorder>label_16</zorder>
-   <zorder>comboBox_board4</zorder>
-   <zorder>comboBox_board3</zorder>
-   <zorder>label_18</zorder>
-   <zorder>label_17</zorder>
-   <zorder>radioButton_board4_0</zorder>
-   <zorder>radioButton_board4_1</zorder>
-   <zorder>radioButton_board4_2</zorder>
-   <zorder>radioButton_board5_1</zorder>
-   <zorder>radioButton_board5_2</zorder>
-   <zorder>radioButton_board4_1</zorder>
-   <zorder>radioButton_board4_0</zorder>
-   <zorder>radioButton_board4_2</zorder>
-   <zorder>radioButton_board5_1</zorder>
-   <zorder>radioButton_board5_2</zorder>
+   <zorder>radioButton_single</zorder>
+   <zorder>radioButton_double</zorder>
+   <zorder>label_19</zorder>
+   <zorder>lineEdit</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">

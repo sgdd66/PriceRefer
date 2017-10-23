@@ -5,20 +5,14 @@
 
 
 import numpy as np
-import matplotlib.pyplot as plt
-import mayavi.mlab as mlab
 from PriceRefer.GasProperty import GasProperty as GP
-import os
-os.environ['QT_Anp. np.pi']='pyside'
 
-
-
-PartArea={  1:'集流器',
-            2:'集流器法兰盘',
+PartArea={  1:'进风筒',
+            2:'法兰',
             3:'叶轮前盘',
             4:'叶片',
             5:'叶轮后盘或中盘',
-            6:'蜗壳侧板',
+            6:'蜗壳后侧板',
             7:'蜗壳外圈',
             8:'蜗壳与进气箱公用侧板',
             9:'进气箱侧板',
@@ -31,12 +25,12 @@ class DataSource(object):
     初始化有两种模式：
     1.输入数据文件，采用拉格朗日插值法获取数据
     2.输入与另一个数据源的关系函数，通过这个数据源获取相应的数据"""
-    def __init__(self,P_in,T_in,P,Qn,n):
+    def __init__(self,P_in,T_in,P,Qn,n,isSingle):
         """压力：Pa
         温度：K
         流量：立方米/秒
         转速：转/分钟"""
-        self.isSingle=True
+        self.isSingle=isSingle
         self.boardThickness=0
         realGas=GP(P_in,T_in,0)
         realRho=realGas.getdensity()
@@ -54,11 +48,12 @@ class DataSource(object):
         self.ns=5.54*n*np.sqrt(self.Qn)/self.P**0.75
         self.psi=0.9*(1.505009664438608 * np.exp(-0.018463158347320 * self.ns) + 0.415434029011928)
         u2=np.sqrt(self.P/(idealRho/2*self.psi))
-        self.D2=u2*60/(np.pi*self.n)
+        self.D2=u2*60/(np.pi*self.n)*1000
         self.phi=self.ns**2*self.psi**1.5*idealRho**1.5/24869
         self.data = np.loadtxt('data.txt')
         self.area=[]
         self.getData()
+        self.getArea()
 
     def getData(self):
 
@@ -70,7 +65,7 @@ class DataSource(object):
         self.e=self.getParam(6,[1,2,0])*k
         self.b1_shroud=self.getParam(7,[1,2,0])*k
         self.b2_shroud=self.getParam(8,[1,2,0])*k
-        self.beta_b2=self.getParam(9,[0,1,2])
+        self.beta_b2=self.getParam(9,[0,1,2])/180*np.pi
 
         self.L_wk=700*k
 
@@ -106,7 +101,7 @@ class DataSource(object):
         self.W_jqx=4*self.t_jqx
         self.H1=(self.D3/2+2*self.e+50*k)
         self.H2=(self.D3/2+2*self.e)
-        self.alpha_jqx=5
+        self.alpha_jqx=5/180*np.pi
 
 
     def getArea(self):
@@ -115,8 +110,8 @@ class DataSource(object):
         R_jlq=self.R_jlq
         R2_jlq=self.R2_jlq
         L_jlq=self.L_jlq
-        S1=np.np. np.pi*(R2_jlq+R_jlq)*L_jlq
-        S2=np.np. np.pi*(R_jlq**2-R2_jlq**2)+2*np.np. np.pi*R2_jlq*L_jlq
+        S1=np.pi*(R2_jlq+R_jlq)*L_jlq
+        S2= np.pi*(R_jlq**2-R2_jlq**2)+2*np.pi*R2_jlq*L_jlq
         S=(S1+S2)/2
         if self.isSingle:
             S=S
@@ -126,9 +121,9 @@ class DataSource(object):
 
         #集流器法兰盘面积
         if self.D3>1600:
-            S=np.np. np.pi*(200*self.R_jlq+10000)
+            S=np.pi*(200*self.R_jlq+10000)
         else:
-            S=np.np. np.pi*(120*self.R_jlq+3600)
+            S=np.pi*(120*self.R_jlq+3600)
         if self.isSingle:
             S=S
         else:
@@ -147,7 +142,7 @@ class DataSource(object):
         area=np.zeros(num)
         for i in range(num):
             r=func1(delta*i)
-            area[i]=2*np.np. np.pi*r*delta
+            area[i]=2*np.pi*r*delta
         S=np.sum(area)
         if self.isSingle:
             S=S
@@ -246,7 +241,7 @@ class DataSource(object):
         H1=self.H1
         H2=self.H2
         W=self.W_jqx
-        alpha=self.alpha_jqx/180*np.pi
+        alpha=self.alpha_jqx
 
         H=H1+H2
         S=H*W-H*H*np.tan(alpha)
@@ -257,44 +252,46 @@ class DataSource(object):
         S=perimeter*self.t_jqx
         self.area.append(S)
 
+    def getWeight(self,thick,ratio,density):
 
-
-
-
-
+        weight=np.zeros(11)
+        for i in range(1,11):
+            weight[i]=self.area[i-1]*thick[i]*ratio[i]*density
+        self.weight=weight
+        return weight
 
 
     def getBlade(self):
-        beta_b1 = self.beta_b1
-        beta_b2 = self.beta_b2
+        beta_b1 = self.beta_b1/np.pi*180
+        beta_b2 = self.beta_b2/np.pi*180
         alpha = 90.0 - beta_b1
         R1 = self.D1 / 2
         R2 = self.D2 / 2
 
-        alpha = alpha / 180.0 * np.np.np.pi
-        beta_b2 = beta_b2 / 180.0 * np.np.np.pi
+        alpha = alpha / 180.0 * np.pi
+        beta_b2 = beta_b2 / 180.0 * np.pi
         beta = 2 * np.arctan((R2 * np.cos(beta_b2) - R1 * np.sin(alpha)) / (
-        R1 * np.cos(alpha) + R2 * np.sin(beta_b2))) / np.np.np.pi * 180
-        alpha = alpha / np.np.np.pi * 180
-        beta_b2 = beta_b2 / np.np.np.pi * 180
+        R1 * np.cos(alpha) + R2 * np.sin(beta_b2))) / np.pi * 180
+        alpha = alpha / np.pi * 180
+        beta_b2 = beta_b2 / np.pi * 180
 
         angle1 = 100
 
-        x1 = R1 * np.cos(angle1 / 180 * np.np.pi)
-        y1 = R1 * np.sin(angle1 / 180 * np.np.pi)
-        k1 = np.tan((angle1 + alpha) / 180 * np.np.pi)
+        x1 = R1 * np.cos(angle1 / 180 * np.pi)
+        y1 = R1 * np.sin(angle1 / 180 * np.pi)
+        k1 = np.tan((angle1 + alpha) / 180 * np.pi)
 
         a = 1.0
-        b = -2.0 * R1 * np.cos(np.np.pi - alpha / 180 * np.np.pi - beta / 2 / 180 * np.np.pi)
+        b = -2.0 * R1 * np.cos(np.pi - alpha / 180 * np.pi - beta / 2 / 180 * np.pi)
         c = R1 * R1 - R2 * R2
         l = (-b + np.sqrt(b * b - 4.0 * a * c)) / (2.0 * a)
 
         angle2 = (R1 * R1 + R2 * R2 - l * l) / (2.0 * R1 * R2)
-        angle2 = np.acos(angle2) * 180 / np.np.pi
+        angle2 = np.arccos(angle2) * 180 / np.pi
         angle3 = angle1 + angle2
 
-        x2 = R2 * np.cos(angle3 / 180 * np.np.pi)
-        y2 = R2 * np.sin(angle3 / 180 * np.np.pi)
+        x2 = R2 * np.cos(angle3 / 180 * np.pi)
+        y2 = R2 * np.sin(angle3 / 180 * np.pi)
 
         cx1, cy1, cr1 = self.CalcuCircle(x1, y1, k1, x2, y2)
         c1_1 = self.CalcuCeta(x1, y1, cx1, cy1, cr1)
@@ -325,7 +322,7 @@ class DataSource(object):
 
         return cx,cy,cr
 
-    def CalcuCircle(self,x,y,cx,cy,cr):
+    def CalcuCeta(self,x,y,cx,cy,cr):
         tx = x - cx 
         ty = y - cy 
 
@@ -362,7 +359,7 @@ class DataSource(object):
                     return data[index, paramIndex]
                 else:
                     k = (data[index, paramIndex] - data[index - 1, paramIndex]) / (data[index, 2] - data[index - 1, 2])
-                    return k * (self.ns - data[index - 1, paramIndex]) + data[index - 1, paramIndex]
+                    return k * (self.ns - data[index - 1, sortIndex[0]]) + data[index - 1, paramIndex]
         elif(sortIndex[0]==1):
             if self.phi < data[0, 1]:
                 return data[0, paramIndex]
@@ -377,14 +374,18 @@ class DataSource(object):
                     return data[index, paramIndex]
                 else:
                     k = (data[index, paramIndex] - data[index - 1, paramIndex]) / (data[index, 2] - data[index - 1, 2])
-                    return k * (self.phi - data[index - 1, paramIndex]) + data[index - 1, paramIndex]
+                    return k * (self.phi - data[index - 1, sortIndex[0]]) + data[index - 1, paramIndex]
         elif sortIndex[0]==0:
             psi=np.around(self.psi/0.2)*0.2
 
             if psi>1.3 and psi<1.5:
                 return 70
+            if psi<0.8:
+                return data[0,9]
+            if psi>2:
+                return data[data.shape[0]-1,9]
             else:
-                data=data[np.where(data[:,0]==psi)[0],:]
+                data=data[np.where(np.abs(data[:,0]-psi)<0.000000001)[0],:]
                 if self.ns<=data[0,2]:
                     return data[0,9]
                 elif self.ns>=data[data.shape[0]-1,2]:
@@ -395,7 +396,7 @@ class DataSource(object):
                             index=i
                             break
                     k=(data[index, paramIndex] - data[index - 1, paramIndex]) / (data[index, 2] - data[index - 1, 2])
-                    return k * (self.ns - data[index - 1, paramIndex]) + data[index - 1, paramIndex]
+                    return k * (self.ns - data[index - 1, 2]) + data[index - 1, paramIndex]
 
 
     def sort(self,data,sortIndex):
@@ -423,4 +424,4 @@ class DataSource(object):
 
 
 if __name__=='__main__':
-    test=DataSource(63740,393,4500,340000/3600,960)
+    test=DataSource(101325,293,3920,11510/3600,1450,True)
