@@ -25,13 +25,13 @@ class DataSource(object):
     初始化有两种模式：
     1.输入数据文件，采用拉格朗日插值法获取数据
     2.输入与另一个数据源的关系函数，通过这个数据源获取相应的数据"""
-    def __init__(self,P_in,T_in,P,Qn,n,isSingle):
+    def __init__(self,P_in,T_in,P,Qn,n,isSingle,boardThickness):
         """压力：Pa
         温度：K
         流量：立方米/秒
         转速：转/分钟"""
         self.isSingle=isSingle
-        self.boardThickness=0
+        self.boardThickness=boardThickness
         realGas=GP(P_in,T_in,0)
         realRho=realGas.getdensity()
         idealGas=GP(101325,293,0)
@@ -62,15 +62,15 @@ class DataSource(object):
         self.R_jlq=self.getParam(3,[2,1,0])*k
         self.L_jlq=self.getParam(4,[2,1,0])*k
         self.R2_jlq=self.getParam(5,[2,1,0])*k
-        self.e=self.getParam(6,[1,2,0])*k
-        self.b1_shroud=self.getParam(7,[1,2,0])*k
-        self.b2_shroud=self.getParam(8,[1,2,0])*k
+        self.e=self.getParam(6,[2,1,0])*k
+        self.b1_shroud=self.getParam(7,[2,1,0])*k
+        self.b2_shroud=self.getParam(8,[2,1,0])*k
         self.beta_b2=self.getParam(9,[0,1,2])/180*np.pi
 
         self.L_wk=700*k
 
-        self.D0=self.R2_jlq
-        self.D1=self.D0+15*k
+        self.D0=self.R2_jlq*2
+        self.D1=self.D0+2*15*k
         self.D3=1040*k
 
         #叶片进口角度
@@ -80,11 +80,11 @@ class DataSource(object):
         x0=self.D0/2+L
         y0=self.b2_shroud+a+b
         def func1(x):
-            return np.sqrt((a+b)**2-(x-x0)**2)+y0
+            return -np.sqrt((a+b)**2-(x-x0)**2)+y0
         self.b1=func1(self.D1/2)
         self.b2=func1(self.D2/2)
 
-        c1=self.Qn/(np.pi*self.D1*self.b1)
+        c1=self.Qn*1000**3/(np.pi*self.D1*self.b1)
         u1=self.n/60*np.pi*self.D1
         self.beta_b1=np.arctan(c1/u1)
         if(self.psi<1.5):
@@ -93,14 +93,14 @@ class DataSource(object):
             self.Z=16
         self.dh=self.D0*0.25
         if self.isSingle:
-            self.B=self.L_wk+self.b1_shroud+40
+            self.B=self.L_jlq+self.b1_shroud+40
         else:
-            self.B=(self.L_wk+self.b1_shroud)*2+self.boardThickness
+            self.B=(self.L_jlq+self.b1_shroud)*2+self.boardThickness[5]
 
-        self.t_jqx=np.sqrt(np.pi*(self.D0)**2/8)
+        self.t_jqx=np.sqrt(np.pi*(self.D0)**2/8)*0.7
         self.W_jqx=4*self.t_jqx
         self.H1=(self.D3/2+2*self.e+50*k)
-        self.H2=(self.D3/2+2*self.e)
+        self.H2=(self.R_jlq+2*self.e)
         self.alpha_jqx=5/180*np.pi
 
 
@@ -132,7 +132,7 @@ class DataSource(object):
 
         #叶轮前盘
         R=self.D3/2
-        L=self.D3/2-self.R2_jlq
+        L=self.D3/2-self.D0/2
         b=self.b1_shroud-self.b2_shroud
         a=(L**2-b**2)/(2*b)
         def func1(x):
@@ -141,8 +141,10 @@ class DataSource(object):
         delta=b/num
         area=np.zeros(num)
         for i in range(num):
-            r=func1(delta*i)
-            area[i]=2*np.pi*r*delta
+            r1=func1(delta*i)
+            r2=func1(delta*(i+1))
+            l=np.sqrt((r1-r2)**2+delta**2)
+            area[i]=2*np.pi*r1*l
         S=np.sum(area)
         if self.isSingle:
             S=S
@@ -159,7 +161,7 @@ class DataSource(object):
         x0 = self.D0 / 2 + L
         y0 = self.b2_shroud + a + b
         def func2(x):
-            return np.sqrt((a + b) ** 2 - (x - x0) ** 2) + y0
+            return -np.sqrt((a + b) ** 2 - (x - x0) ** 2) + y0
 
         num = 100
         delta = (c2_1 - c1_1) / num
@@ -170,7 +172,7 @@ class DataSource(object):
             y=cy1+cr1*np.sin(eta)
             r=np.sqrt(x**2+y**2)
             h=func2(r)
-            area[i]=eta*cr1*h
+            area[i]=delta*cr1*h
         S=np.sum(area)*self.Z
         if self.isSingle:
             S=S
@@ -252,11 +254,11 @@ class DataSource(object):
         S=perimeter*self.t_jqx
         self.area.append(S)
 
-    def getWeight(self,thick,ratio,density):
+    def getWeight(self,ratio,density):
 
         weight=np.zeros(11)
         for i in range(1,11):
-            weight[i]=self.area[i-1]*thick[i]*ratio[i]*density
+            weight[i]=self.area[i-1]*self.boardThickness[i]*ratio[i]*density
         self.weight=weight
         return weight
 
@@ -424,4 +426,5 @@ class DataSource(object):
 
 
 if __name__=='__main__':
-    test=DataSource(101325,293,3920,11510/3600,1450,True)
+    boardThick=np.zeros(11)+1
+    test=DataSource(101325,293,2760,40921/3600,1450,True,boardThick)

@@ -17,11 +17,12 @@ def Calculate():
     Qn=float(mywin.lineEdit_Qn.text())
     n=float(mywin.lineEdit_n.text())
     density=float(mywin.lineEdit_density.text())
+    axle=float(mywin.lineEdit_axle.text())
     if mywin.radioButton_single.isChecked():
         isSingle=True
     if mywin.radioButton_double.isChecked():
         isSingle=False
-    data=DataSource(P_in,T_in,P,Qn,n,isSingle)
+
 
     boardThick=np.zeros(11)
     boardThick[1] = float(mywin.comboBox_board1.currentText())
@@ -82,13 +83,14 @@ def Calculate():
         ratio[9] += 0.05
         ratio[10] += 0.05
 
-
-    weight=data.getWeight(boardThick,ratio,density)
+    data = DataSource(P_in, T_in, P, Qn, n, isSingle,boardThick)
+    weight=data.getWeight(ratio,density)
     # weight=np.zeros(11)
     str=''
     for i in range(1,11):
         str+=PartArea[i]+"重量：{0}\n".format(weight[i])
-    str+="总重：{0}".format(np.sum(weight))
+    str+="主轴重量：{0}".format(axle)
+    str+="总重：{0}".format(np.sum(weight)+axle)
 
     mywin.filewindow.textBrowser.setText(str)
     mywin.filewindow.show()
