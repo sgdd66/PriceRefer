@@ -5,7 +5,7 @@
 
 
 import numpy as np
-from PriceRefer.GasProperty import GasProperty as GP
+from .GasProperty import GasProperty as GP
 
 PartArea={  1:'进风筒',
             2:'法兰',
@@ -258,7 +258,7 @@ class DataSource(object):
 
         weight=np.zeros(11)
         for i in range(1,11):
-            weight[i]=self.area[i-1]*self.boardThickness[i]*ratio[i]*density
+            weight[i]=self.area[i-1]*self.boardThickness[i]*ratio[i]*density/1000**3
         self.weight=weight
         return weight
 

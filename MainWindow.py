@@ -7,7 +7,7 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from PriceRefer.FileWindow import FileWindow
+from .FileWindow import FileWindow
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -267,33 +267,39 @@ class Ui_MainWindow(object):
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 0, 0, 1, 1)
         self.lineEdit_P_in = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_P_in.setText("101325")
         self.lineEdit_P_in.setObjectName("lineEdit_P_in")
         self.gridLayout.addWidget(self.lineEdit_P_in, 0, 1, 1, 1)
         self.label_2 = QtWidgets.QLabel(self.widget)
         self.label_2.setObjectName("label_2")
         self.gridLayout.addWidget(self.label_2, 0, 2, 1, 1)
         self.lineEdit_T_in = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_T_in.setText("293")
         self.lineEdit_T_in.setObjectName("lineEdit_T_in")
         self.gridLayout.addWidget(self.lineEdit_T_in, 0, 3, 1, 1)
         self.label_4 = QtWidgets.QLabel(self.widget)
         self.label_4.setObjectName("label_4")
         self.gridLayout.addWidget(self.label_4, 1, 0, 1, 1)
         self.lineEdit_P = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_P.setText("2760")
         self.lineEdit_P.setObjectName("lineEdit_P")
         self.gridLayout.addWidget(self.lineEdit_P, 1, 1, 1, 1)
         self.label_3 = QtWidgets.QLabel(self.widget)
         self.label_3.setObjectName("label_3")
         self.gridLayout.addWidget(self.label_3, 1, 2, 1, 1)
         self.lineEdit_Qn = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_Qn.setText("11.367")
         self.lineEdit_Qn.setObjectName("lineEdit_Qn")
         self.gridLayout.addWidget(self.lineEdit_Qn, 1, 3, 1, 1)
         self.label_5 = QtWidgets.QLabel(self.widget)
         self.label_5.setObjectName("label_5")
         self.gridLayout.addWidget(self.label_5, 2, 0, 1, 1)
         self.lineEdit_n = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_n.setText("1450")
         self.lineEdit_n.setObjectName("lineEdit_n")
         self.gridLayout.addWidget(self.lineEdit_n, 2, 1, 1, 1)
         self.radioButton_single = QtWidgets.QRadioButton(self.widget)
+        self.radioButton_single.setChecked(True)
         self.radioButton_single.setObjectName("radioButton_single")
         self.gridLayout.addWidget(self.radioButton_single, 2, 2, 1, 1)
         self.radioButton_double = QtWidgets.QRadioButton(self.widget)
@@ -310,6 +316,7 @@ class Ui_MainWindow(object):
         self.lineEdit_density.setText("7850")
         self.gridLayout.addWidget(self.lineEdit_density, 3, 1, 1, 1)
         self.lineEdit_axle = QtWidgets.QLineEdit(self.widget)
+        self.lineEdit_axle.setText("0")
         self.lineEdit_axle.setObjectName("lineEdit_axle")
         self.gridLayout.addWidget(self.lineEdit_axle, 3, 3, 1, 1)
         self.layoutWidget.raise_()

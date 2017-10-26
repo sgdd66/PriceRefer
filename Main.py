@@ -88,9 +88,9 @@ def Calculate():
     # weight=np.zeros(11)
     str=''
     for i in range(1,11):
-        str+=PartArea[i]+"重量：{0}\n".format(weight[i])
-    str+="主轴重量：{0}".format(axle)
-    str+="总重：{0}".format(np.sum(weight)+axle)
+        str+=PartArea[i]+"重量：{:.2f}KG\n\n".format(weight[i])
+    str+="主轴重量：{:.2f}KG\n\n".format(axle)
+    str+="总重：{:.2f}KG".format(np.sum(weight)+axle)
 
     mywin.filewindow.textBrowser.setText(str)
     mywin.filewindow.show()
