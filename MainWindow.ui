@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>802</width>
-    <height>705</height>
+    <width>818</width>
+    <height>844</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -21,7 +21,7 @@
     <property name="geometry">
      <rect>
       <x>70</x>
-      <y>260</y>
+      <y>370</y>
       <width>641</width>
       <height>341</height>
      </rect>
@@ -698,8 +698,8 @@
    <widget class="QPushButton" name="pushButton_calculate">
     <property name="geometry">
      <rect>
-      <x>540</x>
-      <y>620</y>
+      <x>590</x>
+      <y>730</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -708,7 +708,7 @@
      <string>计算</string>
     </property>
    </widget>
-   <widget class="QWidget" name="">
+   <widget class="QWidget" name="layoutWidget">
     <property name="geometry">
      <rect>
       <x>61</x>
@@ -794,20 +794,69 @@
      </item>
     </layout>
    </widget>
+   <widget class="QLabel" name="label_20">
+    <property name="geometry">
+     <rect>
+      <x>70</x>
+      <y>270</y>
+      <width>72</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>直径</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="lineEdit_2">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>270</y>
+      <width>113</width>
+      <height>21</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox_7">
+    <property name="geometry">
+     <rect>
+      <x>390</x>
+      <y>270</y>
+      <width>91</width>
+      <height>19</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>进气箱</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_21">
+    <property name="geometry">
+     <rect>
+      <x>530</x>
+      <y>270</y>
+      <width>72</width>
+      <height>15</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>型号</string>
+    </property>
+   </widget>
    <zorder>layoutWidget</zorder>
    <zorder>tabWidget</zorder>
    <zorder>pushButton_calculate</zorder>
-   <zorder>radioButton_single</zorder>
-   <zorder>radioButton_double</zorder>
-   <zorder>label_19</zorder>
-   <zorder>lineEdit</zorder>
+   <zorder>label_20</zorder>
+   <zorder>lineEdit_2</zorder>
+   <zorder>checkBox_7</zorder>
+   <zorder>label_21</zorder>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>802</width>
+     <width>818</width>
      <height>26</height>
     </rect>
    </property>

@@ -25,7 +25,7 @@ class DataSource(object):
     初始化有两种模式：
     1.输入数据文件，采用拉格朗日插值法获取数据
     2.输入与另一个数据源的关系函数，通过这个数据源获取相应的数据"""
-    def __init__(self,P_in,T_in,P,Qn,n,isSingle,boardThickness):
+    def __init__(self,P_in,T_in,P,Qn,n,isSingle,boardThickness,D2):
         """压力：Pa
         温度：K
         流量：立方米/秒
@@ -48,7 +48,10 @@ class DataSource(object):
         self.ns=5.54*n*np.sqrt(self.Qn)/self.P**0.75
         self.psi=0.9*(1.505009664438608 * np.exp(-0.018463158347320 * self.ns) + 0.415434029011928)
         u2=np.sqrt(self.P/(idealRho/2*self.psi))
-        self.D2=u2*60/(np.pi*self.n)*1000
+        if D2==0:
+            self.D2=u2*60/(np.pi*self.n)*1000
+        else:
+            self.D2=D2
         self.phi=self.ns**2*self.psi**1.5*idealRho**1.5/24869
         self.data = np.loadtxt('data.txt')
         self.area=[]
