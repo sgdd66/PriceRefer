@@ -7,18 +7,18 @@
 # WARNING! All changes made in this file will be lost!
 
 from PyQt5 import QtCore, QtGui, QtWidgets
-from .FileWindow import FileWindow
+from PriceRefer.FileWindow import FileWindow
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(802, 705)
+        MainWindow.resize(790, 750)
         MainWindow.setUnifiedTitleAndToolBarOnMac(False)
         self.filewindow=FileWindow()
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.tabWidget = QtWidgets.QTabWidget(self.centralwidget)
-        self.tabWidget.setGeometry(QtCore.QRect(70, 260, 641, 341))
+        self.tabWidget.setGeometry(QtCore.QRect(60, 320, 641, 341))
         self.tabWidget.setObjectName("tabWidget")
         self.tab = QtWidgets.QWidget()
         self.tab.setObjectName("tab")
@@ -255,7 +255,7 @@ class Ui_MainWindow(object):
         self.gridLayout_4.addWidget(self.comboBox_board3, 0, 1, 1, 1)
         self.tabWidget.addTab(self.tab_4, "")
         self.pushButton_calculate = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_calculate.setGeometry(QtCore.QRect(540, 620, 93, 28))
+        self.pushButton_calculate.setGeometry(QtCore.QRect(600, 680, 93, 28))
         self.pushButton_calculate.setObjectName("pushButton_calculate")
         self.widget = QtWidgets.QWidget(self.centralwidget)
         self.widget.setGeometry(QtCore.QRect(61, 21, 661, 211))
@@ -319,6 +319,17 @@ class Ui_MainWindow(object):
         self.lineEdit_axle.setText("0")
         self.lineEdit_axle.setObjectName("lineEdit_axle")
         self.gridLayout.addWidget(self.lineEdit_axle, 3, 3, 1, 1)
+
+        self.label_21 = QtWidgets.QLabel(self.centralwidget)
+        self.label_21.setGeometry(QtCore.QRect(70, 270, 72, 15))
+        self.label_21.setObjectName("label_20")
+        self.lineEdit_De = QtWidgets.QLineEdit(self.centralwidget)
+        self.lineEdit_De.setGeometry(QtCore.QRect(180, 270, 113, 21))
+        self.lineEdit_De.setObjectName("lineEdit_De")
+        self.lineEdit_De.setText("0")
+        self.checkBox_inputBox = QtWidgets.QCheckBox(self.centralwidget)
+        self.checkBox_inputBox.setGeometry(QtCore.QRect(390, 270, 91, 19))
+        self.checkBox_inputBox.setObjectName("checkBox_inputBox")
         self.layoutWidget.raise_()
         self.tabWidget.raise_()
         self.pushButton_calculate.raise_()
@@ -328,9 +339,11 @@ class Ui_MainWindow(object):
         self.label_20.raise_()
         self.lineEdit_density.raise_()
         self.lineEdit_axle.raise_()
+
         MainWindow.setCentralWidget(self.centralwidget)
+
         self.menubar = QtWidgets.QMenuBar(MainWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 802, 26))
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 741, 26))
         self.menubar.setObjectName("menubar")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtWidgets.QStatusBar(MainWindow)
@@ -434,6 +447,8 @@ class Ui_MainWindow(object):
         self.radioButton_double.setText(_translate("MainWindow", "双吸"))
         self.label_19.setText(_translate("MainWindow", "材料密度（千克/立方米）"))
         self.label_20.setText(_translate("MainWindow", "主轴重量（千克）"))
+        self.label_21.setText(_translate("MainWindow", "直径(mm)"))
+        self.checkBox_inputBox.setText(_translate("MainWindow", "进气箱"))
 
 class MyWindow(QtWidgets.QMainWindow,Ui_MainWindow):
     def __init__(self):
@@ -445,7 +460,6 @@ class MyWindow(QtWidgets.QMainWindow,Ui_MainWindow):
 
 if __name__=="__main__":
     import sys
-
 
     app = QtWidgets.QApplication(sys.argv)
     myshow = MyWindow()

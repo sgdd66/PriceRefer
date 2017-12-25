@@ -18,6 +18,9 @@ def Calculate():
     n=float(mywin.lineEdit_n.text())
     density=float(mywin.lineEdit_density.text())
     axle=float(mywin.lineEdit_axle.text())
+    De=float(mywin.lineEdit_De.text())
+    hasInputBox =mywin.checkBox_inputBox.isChecked()
+
     if mywin.radioButton_single.isChecked():
         isSingle=True
     if mywin.radioButton_double.isChecked():
@@ -83,14 +86,22 @@ def Calculate():
         ratio[9] += 0.05
         ratio[10] += 0.05
 
-    data = DataSource(P_in, T_in, P, Qn, n, isSingle,boardThick)
-    weight=data.getWeight(ratio,density)
+    data = DataSource(P_in, T_in, P, Qn, n, isSingle,boardThick,De)
+    weight=data.getWeight(ratio,density,hasInputBox)
     # weight=np.zeros(11)
     str=''
     for i in range(1,11):
         str+=PartArea[i]+"重量：{:.2f}KG\n\n".format(weight[i])
     str+="主轴重量：{:.2f}KG\n\n".format(axle)
-    str+="总重：{:.2f}KG".format(np.sum(weight)+axle)
+    str+="总重：{:.2f}KG\n\n".format(np.sum(weight)+axle)
+    if data.isSingle:
+        str+="机型：{0}-{1}X{2}".format(int(data.psi*5),1,int(data.ns))
+    else:
+        str += "机型：{0}-{1}X{2}".format(int(data.psi * 5), 2, int(data.ns))
+    if hasInputBox:
+        str+="No{:.2f}F".format(data.D2/100)
+    else:
+        str += "No{:.2f}D".format(data.D2/100)
 
     mywin.filewindow.textBrowser.setText(str)
     mywin.filewindow.show()
