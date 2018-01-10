@@ -50,8 +50,10 @@ class DataSource(object):
         u2=np.sqrt(self.P/(idealRho/2*self.psi))
         if D==0:
             self.D2=u2*60/(np.pi*self.n)*1000
+
         else:
             self.D2=D
+            self.psi = self.P / (0.5 * self.rho * u2 ** 2)
         self.phi=self.ns**2*self.psi**1.5*idealRho**1.5/24869
         self.data = np.loadtxt('data.txt')
         self.area=[]
@@ -250,11 +252,19 @@ class DataSource(object):
 
         H=H1+H2
         S=H*W-H*H*np.tan(alpha)
+        if(self.isSingle):
+            S=S
+        else:
+            S=2*S
         self.area.append(S)
 
         #进气箱外圈面积
         perimeter=H/np.cos(alpha)*2+W-2*H*np.tan(alpha)
         S=perimeter*self.t_jqx
+        if (self.isSingle):
+            S = S
+        else:
+            S = 2 * S
         self.area.append(S)
 
     def getWeight(self,ratio,density,hasInputBox):

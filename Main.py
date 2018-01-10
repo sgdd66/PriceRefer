@@ -95,9 +95,9 @@ def Calculate():
     str+="主轴重量：{:.2f}KG\n\n".format(axle)
     str+="总重：{:.2f}KG\n\n".format(np.sum(weight)+axle)
     if data.isSingle:
-        str+="机型：{0}-{1}X{2}".format(int(data.psi*5),1,int(data.ns))
+        str+="机型：{0:.1f}-{1}X{2}".format(data.psi*5,1,int(data.ns))
     else:
-        str += "机型：{0}-{1}X{2}".format(int(data.psi * 5), 2, int(data.ns))
+        str += "机型：{0:.1f}-{1}X{2}".format(data.psi * 5, 2, int(data.ns))
     if hasInputBox:
         str+="No{:.2f}F".format(data.D2/100)
     else:
