@@ -5,8 +5,8 @@
 
 
 import numpy as np
-from .GasProperty import GasProperty as GP
-
+from PriceRefer.GasProperty import GasProperty as GP
+import re
 PartArea={  1:'进风筒',
             2:'法兰',
             3:'叶轮前盘',
@@ -25,13 +25,12 @@ class DataSource(object):
     初始化有两种模式：
     1.输入数据文件，采用拉格朗日插值法获取数据
     2.输入与另一个数据源的关系函数，通过这个数据源获取相应的数据"""
-    def __init__(self,P_in,T_in,P,Qn,n,isSingle,boardThickness,D):
+    def design(self,P_in,T_in,P,Qn,n,D,isSingle):
         """压力：Pa
         温度：K
         流量：立方米/秒
         转速：转/分钟"""
         self.isSingle=isSingle
-        self.boardThickness=boardThickness
         realGas=GP(P_in,T_in,0)
         realRho=realGas.getdensity()
         idealGas=GP(101325,293,0)
@@ -52,17 +51,23 @@ class DataSource(object):
             self.D2=u2*60/(np.pi*self.n)*1000
 
         else:
-            self.D2=D
+            self.D2=D/1000
+            u2=n*self.D2*np.pi/60
             self.psi = self.P / (0.5 * self.rho * u2 ** 2)
+            self.D2*=1000
         self.phi=self.ns**2*self.psi**1.5*idealRho**1.5/24869
-        self.data = np.loadtxt('data.txt')
+
         self.area=[]
-        self.getData()
-        self.getArea()
+        self.database()
 
-    def getData(self):
+    def database(self):
+        data = np.loadtxt('data.txt')
+        data[:,0]/=5
+        index=np.where(data[:,10]!=0)[0]
+        self.data=np.delete(data,index,0)
 
-        #集流器进口半径
+    def getDataByInput(self):
+
         k=self.D2/1000
         self.R_jlq=self.getParam(3,[2,1,0])*k
         self.L_jlq=self.getParam(4,[2,1,0])*k
@@ -108,9 +113,9 @@ class DataSource(object):
         self.H2=(self.R_jlq+2*self.e)
         self.alpha_jqx=5/180*np.pi
 
-
-    def getArea(self):
+    def getArea(self,boardThickness):
         """计算各部分面积"""
+        self.boardThickness=boardThickness
         #集流器面积
         R_jlq=self.R_jlq
         R2_jlq=self.R2_jlq
@@ -141,7 +146,7 @@ class DataSource(object):
         b=self.b1_shroud-self.b2_shroud
         a=(L**2-b**2)/(2*b)
         def func1(x):
-            return R-np.sqrt((a+b)**2-(x+a)**2)
+            return R-np.sqrt(np.abs((a+b)**2-(x+a)**2))
         num=100
         delta=b/num
         area=np.zeros(num)
@@ -281,7 +286,6 @@ class DataSource(object):
             self.weight = weight
         return weight
 
-
     def getBlade(self):
         beta_b1 = self.beta_b1/np.pi*180
         beta_b2 = self.beta_b2/np.pi*180
@@ -320,11 +324,6 @@ class DataSource(object):
 
         return cx1,cy1,cr1,c1_1,c2_1
 
-
-
-
-
-
     def CalcuCircle(self,dx1, dy1, dk1, dx2, dy2):
         x1 = dx1 
         y1 = dy1 
@@ -356,7 +355,6 @@ class DataSource(object):
             ceta = 2 *  np.pi - ceta 
 
         return ceta 
-
 
     def getParam(self,paramIndex,sortIndex):
         """sortIndex是指对data数组排序时的关键字段的序号
@@ -419,7 +417,6 @@ class DataSource(object):
                     k=(data[index, paramIndex] - data[index - 1, paramIndex]) / (data[index, 2] - data[index - 1, 2])
                     return k * (self.ns - data[index - 1, 2]) + data[index - 1, paramIndex]
 
-
     def sort(self,data,sortIndex):
         firstIndex=sortIndex[0]
         secondIndex=sortIndex[1]
@@ -443,7 +440,116 @@ class DataSource(object):
                     data[i,:]=data[i+1,:]
                     data[i+1,:]=temp[:]
 
+    def selectKind(self):
+
+        file=open("Kind.txt")
+        regex_all=re.compile(r'<kind>.*</kind>')
+        regex_ns=re.compile(r'<ns>([0-9]+.?[0-9]*)</ns>')
+        regex_psi=re.compile(r'<psi>([0-9]+.?[0-9]*)</psi>')
+        regex_index=re.compile(r'<index>([0-9]+.?[0-9]*)</index>')
+        regex_name=re.compile(r'<name>(.*)</name>')
+        try:
+            str=regex_all.findall(file.read())
+            kinds=[]
+            for iter in str:
+                match=regex_ns.search(iter)
+                ns=float(match.group(1))
+
+                match=regex_psi.search(iter)
+                psi=float(match.group(1))/5
+
+                match=regex_index.search(iter)
+                index=float(match.group(1))
+
+                match=regex_name.search(iter)
+                name=match.group(1)
+
+                kinds.append([ns,psi,index,name])
+        except:
+            print("error in open file 'Kind.txt'")
+        file.close()
+
+        kinds.sort(key=lambda l:np.abs(l[0]-self.ns))
+        ans=[kinds[0][3],kinds[1][3],kinds[2][3]]
+        kinds.sort(key=lambda l:np.abs(l[1]-self.psi))
+        for i in range(3):
+            if ans.__contains__(kinds[i][3]):
+                continue
+            else:
+                ans.append(kinds[i][3])
+        self.kinds=kinds
+        return ans
+
+    def getDataByKind(self,kind):
+        for k in self.kinds:
+            if k[3]==kind:
+                aim=k
+                break
+        data = np.loadtxt('data.txt')
+        data[:,0]/=5
+        data=data[np.where(data[:,2]==aim[0])]
+        data = data[np.where(data[:,0]==aim[1])]
+        data = data[np.where(data[:,10]==aim[2])]
+        data = data[0]
+        self.ns=data[2]
+        self.psi=data[0]
+        self.phi=data[1]
+
+        k=self.D2/1000
+        self.R_jlq=data[3]*k
+        self.L_jlq=data[4]*k
+        self.R2_jlq=data[5]*k
+        self.e=data[6]*k
+        self.b1_shroud=data[7]*k
+        self.b2_shroud=data[8]*k
+        self.beta_b2=data[9]/180*np.pi
+
+        self.L_wk=700*k
+
+        self.D0=self.R2_jlq*2
+        self.D1=self.D0+2*15*k
+        self.D3=1040*k
+
+        #叶片进口角度
+        b=self.b1_shroud-self.b2_shroud
+        L=(self.D3-self.D0)/2
+        a=(L**2-b**2)/(2*b)
+        x0=self.D0/2+L
+        y0=self.b2_shroud+a+b
+        def func1(x):
+            return -np.sqrt((a+b)**2-(x-x0)**2)+y0
+        self.b1=func1(self.D1/2)
+        self.b2=func1(self.D2/2)
+
+        c1=self.Qn*1000**3/(np.pi*self.D1*self.b1)
+        u1=self.n/60*np.pi*self.D1
+        self.beta_b1=np.arctan(c1/u1)
+        if(self.psi<1.5):
+            self.Z=12
+        else:
+            self.Z=16
+        self.dh=self.D0*0.25
+        if self.isSingle:
+            self.B=self.L_jlq+self.b1_shroud+40
+        else:
+            self.B=(self.L_jlq+self.b1_shroud)*2+self.boardThickness[5]
+
+        self.t_jqx=np.sqrt(np.pi*(self.D0)**2/8)*0.7
+        self.W_jqx=4*self.t_jqx
+        self.H1=(self.D3/2+2*self.e+50*k)
+        self.H2=(self.R_jlq+2*self.e)
+        self.alpha_jqx=5/180*np.pi
+
+
+
+
+
+
 
 if __name__=='__main__':
     boardThick=np.zeros(11)+1
-    test=DataSource(101325,293,2760,40921/3600,1450,True,boardThick)
+    test=DataSource()
+    test.design(101325,293,2760,40921/3600,1450,0)
+    test.getDataByInput()
+    test.getArea(True,boardThick)
+    test.selectKind()
