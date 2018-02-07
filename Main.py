@@ -89,9 +89,11 @@ def Calculate():
         ratio[10] += 0.05
 
     data.design(P_in, T_in, P, Qn, n, De, isSingle)
-    if(mywin.comboBox_kind.currentText()!="null" and mywin.comboBox_kind.currentText()!=""):
+    if(mywin.comboBox_kind.currentText()!="CAL" and mywin.comboBox_kind.currentText()!=""):
+        data.boardThickness=boardThick
         data.getDataByKind(mywin.comboBox_kind.currentText())
     else:
+        data.boardThickness=boardThick
         data.getDataByInput()
     data.getArea(boardThick)
     weight=data.getWeight(ratio,density,hasInputBox)
@@ -136,7 +138,8 @@ def setComboBoxKind():
     kinds=data.selectKind()
 
     combo=mywin.comboBox_kind
-
+    for i in range(6):
+        combo.setItemText(i+1,"")
     for i in range(len(kinds)):
         combo.setItemText(i+1,kinds[i])
 
