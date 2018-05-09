@@ -28,6 +28,6 @@
 <kind><ns>72</ns><psi>4</psi><index>0</index><name>72-4</name></kind>
 <kind><ns>68</ns><psi>4</psi><index>0</index><name>68-4-A</name></kind>
 <kind><ns>68</ns><psi>4</psi><index>1</index><name>68-4-B</name></kind>
-<kind><ns>72</ns><psi>4</psi><index>0</index><name>72-4</name></kind>
+
 <kind><ns>73</ns><psi>4</psi><index>0</index><name>73-4</name></kind>
 <kind><ns>79</ns><psi>4</psi><index>0</index><name>79-4</name></kind>
